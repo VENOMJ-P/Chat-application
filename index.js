@@ -11,10 +11,9 @@ const server = http.createServer(app);
 const io = socketio(server);
 
 io.on("connection", (socket) => {
-
   socket.on("join_room", (data) => {
     socket.join(data.roomid, () => {
-      console.log("join room",data.roomId);
+      console.log("join room", data.roomId);
     });
   });
 
@@ -26,15 +25,19 @@ io.on("connection", (socket) => {
     });
     io.to(data.roomid).emit("msg_received", data);
   });
+
+  socket.on("typing", (data) => {
+    socket.broadcast.to(data.roomid).emit("someone_typing");
+  });
 });
 
 app.set("view engine", "ejs");
 app.use("/", express.static(__dirname + "/public"));
 
-app.get("/chat/:roomid",async (req, res) => {
+app.get("/chat/:roomid", async (req, res) => {
   const chats = await Chat.find({
     roomId: req.params.roomid,
-  }).select('content user')
+  }).select("content user");
   res.render("index", {
     name: "Jay",
     id: req.params.roomid,
